@@ -8,9 +8,7 @@ and SHARD. It uses one track per voice and the Digitakt's normal AMP,
 filter, mixer and effects path. The source, not a modified Elektron OS,
 is what this repository distributes.
 
-S027 has been played on hardware: a held note no longer ends after about
-0.9 seconds, and the abrupt end pop is gone. Performance still depends on
-your project. One instance runs without FAST AUDIO; the original hardware
+One instance runs without FAST AUDIO; the original hardware
 test found two instances practical with FAST AUDIO enabled. Eight-track
 operation is **not** claimed.
 
@@ -38,8 +36,6 @@ left begins below it. Holding FUNC while turning uses the stock TUNE
 octave-step behavior (-60 to +24); ordinary turning reaches the complete
 -64 to +63 range.
 
-The stock BR control still processes Sophie's output. The roughness you
-hear at BR 0 comes from the synth, not a second hidden bitcrusher.
 
 ## Build your own OS
 
