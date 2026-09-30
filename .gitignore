@@ -12,3 +12,8 @@ diagnostics/digihealth/out/
 
 # Stock firmware is supplied by each user, never by this repository.
 firmware/
+
+# Keep only the designated Markdown documents.
+*.md
+!readme.md
+!third_party.md
