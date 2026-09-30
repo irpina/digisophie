@@ -1,0 +1,291 @@
+| SPDX-License-Identifier: MIT
+| Sophie custom machine registration and post-playback render hook.
+        .section .run, "ax"
+        .globl ds_inject_s
+ds_inject_s:
+        lea     -60(%sp), %sp
+        movem.l %d0-%d7/%a0-%a6, (%sp)
+        jsr     ds_inject
+        movem.l (%sp), %d0-%d7/%a0-%a6
+        lea     60(%sp), %sp
+        lea     0x4199e444, %a4
+        rts
+
+        .equ BMP_VT, 0x401b73b4
+        .balign 4
+        .globl ds_machine
+ds_machine:
+        .long   7, ds_name, ds_short, ds_icon_bmp, 3, 7
+ds_name: .asciz "SOPHIE"
+ds_short: .asciz "SOPH"
+        .balign 4
+ds_icon_bmp:
+        .long BMP_VT, 11, 7, 1, ds_icon_px, ds_icon_mask, 0
+ds_icon_px:
+        .long 0x10400000,0x28a00000,0x55400000,0xaa800000
+        .long 0x55400000,0x28a00000,0x10400000,0x00000000
+        .long 0x00000000,0x00000000,0x00000000
+ds_icon_mask:
+        .long 0xfe000000,0xfe000000,0xfe000000,0xfe000000
+        .long 0xfe000000,0xfe000000,0xfe000000,0x00000000
+        .long 0x00000000,0x00000000,0x00000000
+
+| Dedicated SOPHIE SRC layout and presentation.  All eight controls retain
+| SLICE's persistent storage slots, preserving locks and external control.
+        .equ DS_ID,7
+        .equ LAY_SLICE,0x4197cf5c
+        .equ P_TUNE,0x84
+        .equ P_MODEL,0x85
+        .equ P_BR,0x86
+        .equ P_SAMP,0x87
+        .equ P_SWEEP,0x88
+        .equ P_METAL,0x89
+        .equ P_FEEDBACK,0x8a
+        .equ P_COLOR,0x8b
+        .section .bss,"aw"
+        .balign 4
+        .globl ds_page_m
+ds_page_m: .long 0
+ds_lay_ok: .long 0
+ds_lay: .space 44
+ds_txt: .space 12
+        .section .run,"ax"
+        .globl ds_layout
+ds_layout:
+        move.l 4(%sp),%d0
+        move.l %d0,ds_page_m
+        cmpi.l #DS_ID,%d0
+        beq.s 1f
+        moveq #3,%d1
+        jmp 0x400657d2
+1:      tst.l ds_lay_ok
+        bne.s 3f
+        lea LAY_SLICE,%a0
+        lea ds_lay,%a1
+        moveq #11,%d0
+2:      move.l (%a0)+,(%a1)+
+        subq.l #1,%d0
+        bne.s 2b
+        moveq #1,%d0
+        move.l %d0,ds_lay_ok
+3:      move.l #ds_lay,%d0
+        rts
+
+ds_pick:
+        moveq #DS_ID,%d1
+        cmp.l ds_page_m,%d1
+        bne.s 8f
+        move.l 12(%sp),%d0
+        subi.l #P_TUNE,%d0
+        cmpi.l #7,%d0
+        bhi.s 8f
+        lsl.l #2,%d0
+        move.l 0(%a0,%d0.l),%d0
+        rts
+8:      moveq #0,%d0
+        rts
+        .globl ds_lab_short,ds_lab_long
+ds_lab_short:
+        lea ds_short_tab,%a0
+        bsr.s ds_pick
+        bne.s 9f
+        move.l 8(%sp),%d1
+        cmpi.l #164,%d1
+        jmp 0x4000fe94
+ds_lab_long:
+        lea ds_long_tab,%a0
+        bsr.s ds_pick
+        bne.s 9f
+        move.l 8(%sp),%d1
+        cmpi.l #164,%d1
+        jmp 0x4000feb6
+9:      rts
+
+ds_is_control:
+        moveq #DS_ID,%d1
+        cmp.l ds_page_m,%d1
+        bne.s 8f
+        cmpi.l #P_TUNE,%d0
+        bcs.s 8f
+        cmpi.l #P_COLOR,%d0
+        bhi.s 8f
+        cmpi.l #P_BR,%d0
+        beq.s 8f
+        cmpi.l #P_SAMP,%d0
+        beq.s 8f
+        moveq #1,%d1
+        rts
+8:      moveq #0,%d1
+        rts
+        .globl ds_knob_gfx
+ds_knob_gfx:
+        move.l 8(%sp),%d0
+        bsr.s ds_is_control
+        beq.s 2f
+        cmpi.l #P_TUNE,%d0
+        beq.s 2f
+        cmpi.l #P_MODEL,%d0
+        beq.s 5f
+        cmpi.l #P_SWEEP,%d0
+        beq.s 3f
+1:      move.l #P_BR,%d0
+        bra.s 4f
+3:      move.l #P_TUNE,%d0
+        bra.s 4f
+5:      move.l 12(%sp),%d0
+        lsr.l #3,%d0
+        mulu.w #42,%d0
+        move.l %d0,12(%sp)
+        move.l #P_BR,%d0              | ordinary four-position knob
+4:
+        move.l %d0,8(%sp)
+2:      lea -20(%sp),%sp
+        movem.l %d2-%d6,(%sp)
+        jmp 0x4000f2c4
+        .globl ds_ui_rec
+ds_ui_rec:
+        move.l 4(%sp),%d0
+        bsr.w ds_is_control
+        beq.s 1f
+        cmpi.l #P_TUNE,%d0
+        beq.s 1f
+        cmpi.l #P_MODEL,%d0
+        beq.s 4f
+        cmpi.l #P_SWEEP,%d0
+        beq.s 3f
+        move.l #P_BR,%d1
+        bra.s 2f
+3:      move.l #P_TUNE,%d1
+        bra.s 2f
+4:      move.l #P_BR,%d1              | ordinary four-position knob
+        bra.s 2f
+1:      move.l 4(%sp),%d1
+2:      cmpi.l #164,%d1
+        jmp 0x4006579e
+
+| Range lookup is reached by display, stepper, setter and validator.
+        .globl ds_prange,ds_prange_f
+ds_prange:
+        movea.l %a2,%a1
+        bra.s 1f
+ds_prange_f:
+        movea.l 36(%sp),%a1
+1:      move.l %a1,-(%sp)
+        move.l %a0,-(%sp)
+        move.l 12(%sp),-(%sp)
+        jsr 0x40078f0c
+        addq.l #4,%sp
+        movea.l (%sp)+,%a0
+        movea.l (%sp)+,%a1
+        move.l 4(%sp),%d1
+        cmpi.l #P_MODEL,%d1
+        bcs.s 9f
+        cmpi.l #P_COLOR,%d1
+        bhi.s 9f
+        cmpi.l #P_BR,%d1
+        beq.s 9f
+        move.l (%a1),%d0
+        cmpi.l #0x4017eb58,%d0
+        bne.s 9f
+        movea.l 16(%a1),%a1
+        move.l (%a1),%d0
+        cmpi.l #0x40181330,%d0
+        bne.s 9f
+        movea.l 16(%a1),%a1
+        moveq #0,%d0
+        move.b 126(%a1),%d0
+        cmpi.l #DS_ID,%d0
+        bne.s 9f
+        cmpi.l #P_SAMP,%d1
+        bne.s 8f
+        clr.l 8(%a0)                   | new Sophie sounds start at SAMP 0
+        bra.s 9f
+8:
+        subi.l #P_MODEL,%d1
+        lsl.l #3,%d1
+        lea ds_range_tab,%a1
+        clr.l (%a0)
+        move.l 0(%a1,%d1.l),%d0
+        move.l %d0,4(%a0)
+        move.l 4(%a1,%d1.l),%d0
+        move.l %d0,8(%a0)
+9:      move.l %a0,%d0
+        rts
+
+        .globl ds_val_text,ds_pop_text
+ds_val_text:
+        move.l 8(%sp),%d0
+        cmpi.l #P_MODEL,%d0
+        beq.s 2f
+        cmpi.l #P_SWEEP,%d0
+        beq.s 4f
+        cmpi.l #P_COLOR,%d0
+        beq.s 5f
+        cmpi.l #P_FEEDBACK,%d0
+        beq.s 5f
+        cmpi.l #P_METAL,%d0
+        bne.s 1f
+5:      move.l #ds_fmt_u7,%a0
+        bra.s 3f
+4:
+        move.l #ds_fmt_sweep,%a0
+        bra.s 3f
+2:      move.l #ds_fmt_model,%a0
+3:
+        moveq #DS_ID,%d1
+        cmp.l ds_page_m,%d1
+        bne.s 1f
+        move.l 12(%sp),-(%sp)
+        move.l 20(%sp),-(%sp)
+        jsr (%a0)
+        addq.l #8,%sp
+        rts
+1:      lea -20(%sp),%sp
+        movem.l %d2-%d4/%a2-%a3,(%sp)
+        jmp 0x4000f32c
+ds_pop_text:
+        move.l 4(%sp),%d0
+        cmpi.l #P_MODEL,%d0
+        beq.s 2f
+        cmpi.l #P_SWEEP,%d0
+        beq.s 4f
+        cmpi.l #P_COLOR,%d0
+        beq.s 5f
+        cmpi.l #P_FEEDBACK,%d0
+        beq.s 5f
+        cmpi.l #P_METAL,%d0
+        bne.s 1f
+5:      move.l #ds_fmt_u7,%a0
+        bra.s 3f
+4:
+        move.l #ds_fmt_sweep,%a0
+        bra.s 3f
+2:      move.l #ds_fmt_model,%a0
+3:
+        moveq #DS_ID,%d1
+        cmp.l ds_page_m,%d1
+        bne.s 1f
+        move.l 8(%sp),-(%sp)
+        pea ds_txt
+        jsr (%a0)
+        addq.l #8,%sp
+        rts
+1:      move.l 4(%sp),%d1
+        cmpi.l #164,%d1
+        jmp 0x400657f8
+        .balign 4
+ds_short_tab: .long ds_s_tune,ds_s_model,0,0,ds_s_sweep,ds_s_metal,ds_s_feedback,ds_s_color
+ds_long_tab: .long ds_l_tune,ds_l_model,0,0,ds_l_sweep,ds_l_metal,ds_l_feedback,ds_l_color
+ds_range_tab: .long 0x1f00,0x0000,0x7f00,0x4000,0x7f00,0x2800,0x7f00,0x4000,0x7f00,0x2800,0x7f00,0x2000,0x7f00,0x4000
+ds_s_tune: .asciz "TUNE"
+ds_s_model: .asciz "MODEL"
+ds_s_color: .asciz "COLOR"
+ds_s_metal: .asciz "METAL"
+ds_s_sweep: .asciz "SWEEP"
+ds_s_feedback: .asciz "FBK"
+ds_l_tune: .asciz "Tune"
+ds_l_model: .asciz "Model"
+ds_l_color: .asciz "Color"
+ds_l_metal: .asciz "Metal"
+ds_l_sweep: .asciz "Sweep"
+ds_l_feedback: .asciz "Feedback"

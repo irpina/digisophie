@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+
+# Generated mods, firmware, maps, probes and test executables.
+out/
+diagnostics/digihealth/out/
+*.elemod
+*.syx
+*.bin
+
+# Stock firmware is supplied by each user, never by this repository.
+firmware/
