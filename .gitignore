@@ -9,6 +9,8 @@ diagnostics/digihealth/out/
 *.elemod
 *.syx
 *.bin
+release/*.work/
+!release/*.elemod
 
 # Stock firmware is supplied by each user, never by this repository.
 firmware/

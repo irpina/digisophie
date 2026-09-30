@@ -39,50 +39,61 @@ octave-step behavior (-60 to +24); ordinary turning reaches the complete
 -64 to +63 range.
 
 
-## Build your own OS
+## Install: no compiler required
 
-You need:
+This works like Digislicer. You need only the prebuilt
+[Sophie mod](release/digisophie-0.1.7.elemod),
+[elekloader](https://github.com/irpina/elekloader/releases/latest), and your
+own original Digitakt Mk1 OS 1.53 `.syx` from
+[Elektron](https://www.elektron.se/support-downloads/digitakt).
+The `.elemod` contains this project's code, **not** Elektron's firmware.
+You do not need ColdFire tools, Python, or a source checkout to install it.
 
-1. Your own original Digitakt Mk1 OS 1.53 `.syx` from
-   [Elektron](https://www.elektron.se/support-downloads/digitakt).
-2. A source checkout of [elekloader](https://github.com/irpina/elekloader)
-   with Digitakt core 2.1 and Python 3.9 or newer.
-3. A ColdFire cross-toolchain (`m68k-linux-gnu-` or `m68k-elf-`: assembler,
-   GCC and linker). Set `ELEKLOADER_CROSS` if its prefix is not
-   `m68k-linux-gnu-`.
+1. Open elekloader and select your stock OS using **Change stock firmware**.
+2. Choose **Install from file** and select `digisophie-0.1.7.elemod`.
+   Enable SOPHIE. elekloader's built-in **core 2.1** should enable with it.
+   If your elekloader has an older core or shows a dependency error, update
+   elekloader before building.
+3. Optional: install and enable the bundled
+   [digihealth diagnostic](release/digihealth-1.0.1.elemod) too. This is
+   the configuration used for the S027 hardware test. It adds SYSTEM INFO
+   and an opt-in FAST AUDIO setting; without it Sophie still works.
+4. Wait for elekloader's **Ready to build** check, set the four-character
+   OS version to `S027`, then choose **Build Firmware**. Save the generated
+   `.syx` on your computer.
+5. Send that `.syx` to the Digitakt with Elektron Transfer using
+   [Elektron's OS-update instructions](https://support.elektron.se/support/solutions/articles/43000662890-how-to-update-your-device).
 
-From this repository:
+Elekloader builds and verifies the OS; **Elektron Transfer does the actual
+upload to the instrument**. Do not power off during the update. Neither
+the stock nor modified OS file belongs in this repository.
+
+### Build the mods from source (developers only)
+
+ColdFire tools are needed only to change or recompile the mod. You need
+Python 3.9+, a source checkout of
+[elekloader](https://github.com/irpina/elekloader), a ColdFire cross-toolchain
+(`m68k-linux-gnu-` or `m68k-elf-` assembler, GCC and linker), and your own
+stock OS 1.53 file. From this repository:
 
 ```sh
 ELEKLOADER_CROSS=m68k-elf- sh scripts/build.sh \
   /path/to/your/Digitakt_OS1.53.syx /path/to/elekloader
 ```
 
-The script builds core 2.1, Sophie and the bundled digihealth diagnostic,
-lints all three mods, then writes
-`out/Digitakt_OS1.53_SOPHIE_S027.syx`. Its OS version is `S027`. The
-stock firmware and generated `.syx` remain local and are Git-ignored.
-Never commit or upload the built `.syx`: it contains Elektron's OS.
-
-To run the host DSP tests without a firmware image:
-
-```sh
-make test
-```
-
-`make cross-check` additionally checks the ColdFire sources if you have
-`m68k-elf-` tools. The optional emulator probes in `tests/` require
-[digiemu](https://github.com/irpina/digiemu) and are not needed to build.
+This builds core 2.1, Sophie and the optional diagnostic from source,
+lints the combination, and writes the verified custom OS to
+`out/Digitakt_OS1.53_SOPHIE_S027.syx`. To test DSP alone, run `make test`;
+`make cross-check` additionally compiles for ColdFire. Optional emulator
+probes in `tests/` require [digiemu](https://github.com/irpina/digiemu).
 
 ## Use and recovery
 
 This changes firmware on the instrument. Back up projects and sounds first,
 check that your stock OS is OS 1.53 for the *original* Digitakt, and keep
-that stock file for recovery. Build through elekloader's verification path;
-follow Elektron's normal OS-update procedure to transfer the resulting
-image. Do not power off during the update. FAST AUDIO is off by default in
-this diagnostic build; SYSTEM INFO and FAST AUDIO can be enabled separately
-in SETTINGS. See [diagnostics](diagnostics/README.md) for the monitor.
+that stock file for recovery. If you install the optional diagnostic,
+FAST AUDIO is off by default; SYSTEM INFO and FAST AUDIO can be enabled
+separately in SETTINGS. See [diagnostics](diagnostics/README.md) for the monitor.
 
 Sophie is independent of, and not endorsed by, Elektron or the estate of
 SOPHIE. It contains no Elektron firmware or samples.
