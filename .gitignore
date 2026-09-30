@@ -15,11 +15,5 @@ firmware/
 
 # Keep only the designated Markdown documents.
 *.md
-!readme.md
-!third_party.md
-
-# Existing root-level Markdown files.
-SOPHIE_DSP_AUDIT.md
-SPICE_ARCHITECTURE.md
-SOPHIE_HARDWARE_LAG_AUDIT.md
-OSCILLOSCOPE_FEASIBILITY.md
+!README.md
+!THIRD_PARTY.md
