@@ -3,7 +3,7 @@
 Sophie is a metallic percussion synth machine for the original Digitakt
 (Mk1), OS 1.53. It began as a fixed-point adaptation of
 [Sophie for Schwung](https://github.com/mestela/schwung-sophie) and evolved
-into four deliberately different, CPU-conscious models: FUSE, BOOM, PIPE
+into four different models: FUSE, BOOM, PIPE
 and SHARD. It uses one track per voice and the Digitakt's normal AMP,
 filter, mixer and effects path. The source, not a modified Elektron OS,
 is what this repository distributes.
