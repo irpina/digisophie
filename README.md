@@ -8,6 +8,8 @@ and SHARD. It uses one track per voice and the Digitakt's normal AMP,
 filter, mixer and effects path. The source, not a modified Elektron OS,
 is what this repository distributes.
 
+<strong><font color="red">USE AT YOUR OWN RISK.</font></strong> This modifies your instrument's firmware; back up your projects and sounds, and keep a stock OS file for recovery.
+
 One instance runs without FAST AUDIO; the original hardware
 test found two instances practical with FAST AUDIO enabled. Eight-track
 operation is **not** claimed.
