@@ -112,9 +112,3 @@ also included in its source directory.
 [DSP.md](DSP.md) records the Digitakt-specific render path, fixed-point
 choices and performance constraints. It distinguishes Sophie from the
 Digitone architecture described in RingTone's DSP reference.
-
-The [DSP audit](SOPHIE_DSP_AUDIT.md),
-[hardware performance notes](SOPHIE_HARDWARE_LAG_AUDIT.md),
-[SPICE architecture idea](SPICE_ARCHITECTURE.md) and
-[oscilloscope feasibility note](OSCILLOSCOPE_FEASIBILITY.md) record the
-development history; the latter two are ideas, not implemented features.
