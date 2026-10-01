@@ -48,10 +48,6 @@ own original Digitakt Mk1 OS 1.53 `.syx` from
 [Elektron](https://www.elektron.se/support-downloads/digitakt).
 The `.elemod` contains this project's code, **not** Elektron's firmware.
 You do not need ColdFire tools, Python, or a source checkout to install it.
-The prebuilt 0.1.7 download is the hardware-tested S027 version. Source on
-`main` contains a small, bit-exact control-conversion optimization for the
-next build; that S028 candidate is not a replacement for S027 until tested
-on hardware.
 
 1. Open elekloader and select your stock OS using **Change stock firmware**.
 2. Choose **Install from file** and select `digisophie-0.1.7.elemod`.
@@ -86,8 +82,8 @@ ELEKLOADER_CROSS=m68k-elf- sh scripts/build.sh \
 ```
 
 This builds core 2.1, Sophie and the optional diagnostic from source,
-lints the combination, and writes the S028 candidate to
-`out/Digitakt_OS1.53_SOPHIE_S028.syx`. To test DSP alone, run `make test`;
+lints the combination, and writes the verified custom OS to
+`out/Digitakt_OS1.53_SOPHIE_S027.syx`. To test DSP alone, run `make test`;
 `make cross-check` additionally compiles for ColdFire. Optional emulator
 probes in `tests/` require [digiemu](https://github.com/irpina/digiemu).
 
@@ -109,6 +105,8 @@ attribution and the separate GPL-2.0-or-later digihealth source are
 documented in [THIRD_PARTY.md](THIRD_PARTY.md). The digihealth license is
 also included in its source directory.
 
-[DSP.md](DSP.md) records the Digitakt-specific render path, fixed-point
-choices and performance constraints. It distinguishes Sophie from the
-Digitone architecture described in RingTone's DSP reference.
+The [DSP audit](SOPHIE_DSP_AUDIT.md),
+[hardware performance notes](SOPHIE_HARDWARE_LAG_AUDIT.md),
+[SPICE architecture idea](SPICE_ARCHITECTURE.md) and
+[oscilloscope feasibility note](OSCILLOSCOPE_FEASIBILITY.md) record the
+development history; the latter two are ideas, not implemented features.
