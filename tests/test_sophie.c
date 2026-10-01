@@ -29,6 +29,8 @@ int main(void)
     struct ds_voice va, vb;
     struct ds_params p = { 180, 0, 64, 90, 30, 30, 127 };
     unsigned model, control, positive = 0, negative = 0, nonzero_late = 0;
+    for (control = 0; control < 128; ++control)
+        assert(ds_u7_q15((uint8_t)control) == (int32_t)(control * 32767u / 127u));
     ds_voice_init(&va);
     ds_voice_render(&va, &p, 1, a, N);
     assert(energy(a, 12000) > 50000);

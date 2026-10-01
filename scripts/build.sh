@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the hardware-tested S027 configuration without redistributing firmware.
+# Build the S028 source candidate without redistributing firmware.
 set -eu
 
 if [ "$#" -ne 2 ]; then
@@ -28,9 +28,9 @@ cd "$loader"
 "$python" -m elekloader.lint --stock "$stock" \
     "$loader/mods/core/out/core-2.1.elemod" \
     "$project/diagnostics/digihealth/out/digihealth-1.0.1.elemod" \
-    "$project/out/digisophie-0.1.7.elemod"
+    "$project/out/digisophie-0.1.8.elemod"
 "$python" -m elekloader.patch --stock "$stock" \
     --mod "$loader/mods/core/out/core-2.1.elemod" \
     --mod "$project/diagnostics/digihealth/out/digihealth-1.0.1.elemod" \
-    --mod "$project/out/digisophie-0.1.7.elemod" \
-    --out "$project/out/Digitakt_OS1.53_SOPHIE_S027.syx" --version S027
+    --mod "$project/out/digisophie-0.1.8.elemod" \
+    --out "$project/out/Digitakt_OS1.53_SOPHIE_S028.syx" --version S028

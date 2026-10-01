@@ -19,3 +19,4 @@ firmware/
 *.md
 !README.md
 !THIRD_PARTY.md
+!DSP.md

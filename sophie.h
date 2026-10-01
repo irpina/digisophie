@@ -5,6 +5,11 @@
 #include <stdint.h>
 
 #define DS_BLOCK_SIZE 32
+/* Exact 0..127 to Q15 mapping without a ColdFire signed divide:
+ * 32767 = 127*258 + 1. */
+static inline int32_t ds_u7_q15(uint8_t x)
+{ return ((int32_t)x << 8) + ((int32_t)x << 1) + (x == 127); }
+
 /* SRC values are decoded by the Digitakt adapter into these native domains. */
 struct ds_params {
     uint16_t phase_inc;

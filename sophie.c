@@ -185,10 +185,10 @@ void ds_voice_render(struct ds_voice *v, const struct ds_params *p,
     uint8_t model = p->model & 3u;
     int32_t color = 0, metal = 0, feedback = 0;
     int32_t ratio = 0, index = 0, inc = 0;
-    int32_t color_target = ((int32_t)p->color * Q15) / 127;
-    int32_t metal_target = ((int32_t)p->metal * Q15) / 127;
-    int32_t feedback_target = ((int32_t)p->feedback * Q15) / 127;
-    int32_t velocity_target = ((int32_t)p->velocity * Q15) / 127;
+    int32_t color_target = ds_u7_q15(p->color);
+    int32_t metal_target = ds_u7_q15(p->metal);
+    int32_t feedback_target = ds_u7_q15(p->feedback);
+    int32_t velocity_target = ds_u7_q15(p->velocity);
     if (trigger || (v->active && v->model != model)) {
         if (!v->active) {
             v->color_s = color_target; v->metal_s = metal_target;
