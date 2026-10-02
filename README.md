@@ -15,6 +15,8 @@ is what this repository distributes.
 Get the current `.elemod` and release notes from the
 [v1.1.13 release](https://github.com/soejrd/digisophie/releases/tag/v1.1.13).
 
+---
+
 <strong><font color="red">USE AT YOUR OWN RISK.</font></strong> This modifies your instrument's firmware; back up your projects and sounds, and keep a stock OS file for recovery.
 
 One instance runs without FAST AUDIO; the original hardware
