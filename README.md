@@ -10,7 +10,7 @@ is what this repository distributes.
 
 ## Changelog
 
-- **S031:** BR became Sophie’s FOLD wavefolder, with level compensation.
+- **S031:** BR is replaced with Sophie’s FOLD wavefolder.
 
 Get the current `.elemod` and release notes from the
 [v1.1.13 release](https://github.com/soejrd/digisophie/releases/tag/v1.1.13).
