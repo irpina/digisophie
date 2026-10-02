@@ -48,11 +48,10 @@ octave-step behavior (-60 to +24); ordinary turning reaches the complete
 
 ## Install: no compiler required
 
-This works like Digislicer. You need only the prebuilt
+You need only the prebuilt
 [Sophie mod](release/digisophie-1.1.13.elemod),
 [elekloader](https://github.com/irpina/elekloader/releases/latest), and your
-own original Digitakt Mk1 OS 1.53 `.syx` from
-[Elektron](https://www.elektron.se/support-downloads/digitakt).
+own original Digitakt Mk1 OS 1.53 `.syx`
 The `.elemod` contains this project's code, **not** Elektron's firmware.
 You do not need ColdFire tools, Python, or a source checkout to install it.
 
@@ -68,8 +67,7 @@ You do not need ColdFire tools, Python, or a source checkout to install it.
 4. Wait for elekloader's **Ready to build** check, set the four-character
    OS version to `S033`, then choose **Build Firmware**. Save the generated
    `.syx` on your computer.
-5. Send that `.syx` to the Digitakt with Elektron Transfer using
-   [Elektron's OS-update instructions](https://support.elektron.se/support/solutions/articles/43000662890-how-to-update-your-device).
+5. Send that `.syx` to the Digitakt with Elektron Transfer
 
 Elekloader builds and verifies the OS; **Elektron Transfer does the actual
 upload to the instrument**. Do not power off during the update. Neither
