@@ -12,6 +12,16 @@ static uint64_t energy(const int32_t *x, unsigned n)
     return total;
 }
 
+static uint64_t power(const int32_t *x, unsigned n)
+{
+    unsigned i; uint64_t total = 0;
+    for (i = 0; i < n; ++i) {
+        int64_t s = x[i] / 65536;
+        total += (uint64_t)(s * s);
+    }
+    return total;
+}
+
 static uint64_t difference(const int32_t *a, const int32_t *b, unsigned n)
 {
     unsigned i; uint64_t total = 0;
@@ -27,7 +37,7 @@ int main(void)
     enum { N = 48000 };
     static int32_t a[N], b[N];
     struct ds_voice va, vb;
-    struct ds_params p = { 180, 0, 64, 90, 30, 30, 127 };
+    struct ds_params p = { 180, 0, 64, 90, 30, 30, 127, 0 };
     unsigned model, control, positive = 0, negative = 0, nonzero_late = 0;
     for (control = 0; control < 128; ++control)
         assert(ds_u7_q15((uint8_t)control) == (int32_t)(control * 32767u / 127u));
@@ -46,13 +56,20 @@ int main(void)
     ds_voice_init(&vb);
     ds_voice_render(&vb, &p, 1, b, N);
     assert(!memcmp(a, b, sizeof a));
+    /* FOLD stays in Sophie's source path, with an exact zero bypass. */
+    ds_fold_block(b, N, 0);
+    assert(!memcmp(a, b, sizeof a));
+    ds_fold_block(b, N, 127);
+    assert(difference(a, b, N) > 100000);
+    for (control = 0; control < N; ++control)
+        assert(b[control] <= 0x7fff0000 && b[control] >= (int32_t)0x80000000);
     /* The common controls must produce four genuinely different voices;
      * BOOM keeps a pitched body while FUSE, PIPE and SHARD emphasize their
      * different metallic structures. */
     {
         static int32_t voices[4][4096];
         unsigned other;
-        p = (struct ds_params){180, 0, 91, 98, 30, 60, 127};
+        p = (struct ds_params){180, 0, 91, 98, 30, 60, 127, 0};
         for (model = 0; model < 4; ++model) {
             p.model = (uint8_t)model;
             ds_voice_init(&va);
@@ -64,7 +81,7 @@ int main(void)
     }
     /* PIPE's ring interaction keeps COLOR and FBK useful even with METAL
      * completely down, unlike the deliberately clean body of FUSE. */
-    p = (struct ds_params){180, 2, 20, 0, 0, 0, 127};
+    p = (struct ds_params){180, 2, 20, 0, 0, 0, 127, 0};
     ds_voice_init(&va); ds_voice_render(&va, &p, 1, a, 4096);
     p.color = 100; p.feedback = 100;
     ds_voice_init(&vb); ds_voice_render(&vb, &p, 1, b, 4096);
@@ -88,7 +105,7 @@ int main(void)
     /* The audited factory-like Fuse patch must not return to its former
      * 8.7 ms feedback burst. Bound normalized slope as well as absolute
      * jump, so simply reducing output gain cannot satisfy this check. */
-    p = (struct ds_params){68, 0, 64, 40, 0, 32, 127};
+    p = (struct ds_params){68, 0, 64, 40, 0, 32, 127, 0};
     ds_voice_init(&va); ds_voice_render(&va, &p, 1, a, N);
     {
         int32_t peak = 0, jump = 0;
@@ -124,7 +141,7 @@ int main(void)
     /* A quiet stock AMP envelope sleeps the oscillator. A held envelope
      * above the threshold never sleeps, and the next trig replaces the
      * sleeping voice from silence rather than replaying a stale sample. */
-    p = (struct ds_params){68, 0, 64, 40, 0, 32, 127};
+    p = (struct ds_params){68, 0, 64, 40, 0, 32, 127, 0};
     ds_voice_init(&vb);
     ds_voice_render(&vb, &p, 1, b, DS_BLOCK_SIZE);
     for (control = 0; control < 64; ++control)
@@ -164,11 +181,24 @@ int main(void)
         unsigned i;
         p = (struct ds_params){ (control & 1) ? 24576 : 68, (uint8_t)model,
             (control & 2) ? 127 : 0, 127, (control & 4) ? 63 : -64,
-            (control & 8) ? 127 : 0, 127 };
+            (control & 8) ? 127 : 0, 127, 0 };
         ds_voice_init(&vb); ds_voice_render(&vb, &p, 1, b, 4096);
         assert(energy(b, 4096) > 10000);
         for (i = 0; i < 4096; ++i)
             assert(b[i] / 65536 < 12000 && b[i] / 65536 > -12000);
+    }
+    /* The one-knob compensation keeps sustained level near the unfurled
+     * source across all topologies, including the strongest fold setting. */
+    for (model = 0; model < 4; ++model) {
+        uint64_t plain, folded;
+        p = (struct ds_params){68, (uint8_t)model, 64, 40, 0, 32, 127, 0};
+        ds_voice_init(&va);
+        ds_voice_render(&va, &p, 1, a, N);
+        plain = power(a + 2400, N - 2400);
+        memcpy(b, a, sizeof a);
+        ds_fold_block(b, N, 127);
+        folded = power(b + 2400, N - 2400);
+        assert(folded * 3 > plain * 2 && folded * 2 < plain * 3);
     }
     puts("ok: Sophie fixed-point engine");
     return 0;

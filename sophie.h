@@ -19,6 +19,7 @@ struct ds_params {
     int8_t sweep;
     uint8_t feedback;
     uint8_t velocity;
+    uint8_t fold;
 };
 
 struct ds_voice {
@@ -45,5 +46,6 @@ void ds_voice_gate(struct ds_voice *voice, int32_t amp_level,
                    int32_t amp_phase);
 void ds_voice_render(struct ds_voice *voice, const struct ds_params *params,
                      int trigger, int32_t *output, uint32_t size);
+void ds_fold_block(int32_t *output, uint32_t size, uint8_t amount);
 
 #endif

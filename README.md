@@ -8,6 +8,13 @@ and SHARD. It uses Digitakt's regular AMP,
 filter, mixer and effects path. The source, not a modified Elektron OS,
 is what this repository distributes.
 
+## Changelog
+
+- **S031:** BR became Sophie’s FOLD wavefolder, with level compensation.
+
+Get the current `.elemod` and release notes from the
+[v1.1.13 release](https://github.com/soejrd/digisophie/releases/tag/v1.1.13).
+
 <strong><font color="red">USE AT YOUR OWN RISK.</font></strong> This modifies your instrument's firmware; back up your projects and sounds, and keep a stock OS file for recovery.
 
 One instance runs without FAST AUDIO; the original hardware
@@ -20,7 +27,7 @@ operation is **not** claimed.
 | --- | --- | --- |
 | A | TUNE | Pitch |
 | B | MODEL | FUSE / BOOM / PIPE / SHARD |
-| C | BR | Stock Digitakt bit reduction |
+| C | FOLD | Sophie-only wavefolder with output level compensation; zero bypasses it |
 | D | SAMP | Stock sample selector; Sophie does not use the sample |
 | E | SWEEP | Bipolar pitch sweep toward the played note |
 | F | METAL | FM/ring intensity |
@@ -42,7 +49,7 @@ octave-step behavior (-60 to +24); ordinary turning reaches the complete
 ## Install: no compiler required
 
 This works like Digislicer. You need only the prebuilt
-[Sophie mod](release/digisophie-0.1.7.elemod),
+[Sophie mod](release/digisophie-1.1.13.elemod),
 [elekloader](https://github.com/irpina/elekloader/releases/latest), and your
 own original Digitakt Mk1 OS 1.53 `.syx` from
 [Elektron](https://www.elektron.se/support-downloads/digitakt).
@@ -50,16 +57,16 @@ The `.elemod` contains this project's code, **not** Elektron's firmware.
 You do not need ColdFire tools, Python, or a source checkout to install it.
 
 1. Open elekloader and select your stock OS using **Change stock firmware**.
-2. Choose **Install from file** and select `digisophie-0.1.7.elemod`.
+2. Choose **Install from file** and select `digisophie-1.1.13.elemod`.
    Enable SOPHIE. elekloader's built-in **core 2.1** should enable with it.
    If your elekloader has an older core or shows a dependency error, update
    elekloader before building.
 3. Optional: install and enable the bundled
    [digihealth diagnostic](release/digihealth-1.0.1.elemod) too. This is
-   the configuration used for the S027 hardware test. It adds SYSTEM INFO
+   the configuration used for the earlier S027 hardware test. It adds SYSTEM INFO
    and an opt-in FAST AUDIO setting; without it Sophie still works.
 4. Wait for elekloader's **Ready to build** check, set the four-character
-   OS version to `S027`, then choose **Build Firmware**. Save the generated
+   OS version to `S033`, then choose **Build Firmware**. Save the generated
    `.syx` on your computer.
 5. Send that `.syx` to the Digitakt with Elektron Transfer using
    [Elektron's OS-update instructions](https://support.elektron.se/support/solutions/articles/43000662890-how-to-update-your-device).
@@ -83,7 +90,7 @@ ELEKLOADER_CROSS=m68k-elf- sh scripts/build.sh \
 
 This builds core 2.1, Sophie and the optional diagnostic from source,
 lints the combination, and writes the verified custom OS to
-`out/Digitakt_OS1.53_SOPHIE_S027.syx`. To test DSP alone, run `make test`;
+`out/Digitakt_OS1.53_SOPHIE_S033.syx`. To test DSP alone, run `make test`;
 `make cross-check` additionally compiles for ColdFire. Optional emulator
 probes in `tests/` require [digiemu](https://github.com/irpina/digiemu).
 

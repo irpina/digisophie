@@ -18,8 +18,11 @@ the Digitakt's audio render at `0x40077fba` and calls `ds_inject` after the
 stock source work. For each Sophie track, `digitakt.c` reads its current
 controls and trigger state, writes 32 mono `int32_t` source samples to the
 track buffer at `0x80001a18 + 128*track`, then lets the stock AMP, filter,
-mixer and sends process them. UI/parameter hooks in `glue.s` keep the stock
-SAMP and BR slots while giving the other controls native SRC knobs and locks.
+mixer and sends process them. Sophie now folds that source buffer with its C
+knob before the stock stages. The C knob keeps BR's persistent value slot but
+is labelled FOLD; zero bypasses the fold. A fixed, interpolated gain curve
+after the fold keeps the source level close to its original range. The SAMP
+slot remains stock.
 
 The audio callback runs every 32 frames at 48 kHz, about 1,500 times per
 second. It is time-critical: a synth optimization must reduce work **while

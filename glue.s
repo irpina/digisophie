@@ -101,6 +101,108 @@ ds_lab_long:
         jmp 0x4000feb6
 9:      rts
 
+| The LFO destination renderer reads the shared SLICE parameter descriptor
+| directly, bypassing ds_lab_short.  Keep its target ID and drawing path,
+| replacing only the displayed name while Sophie's layout is active.
+        .globl ds_lfo_label
+ds_lfo_label:
+        moveq #DS_ID,%d1
+        cmp.l ds_page_m,%d1
+        bne.s 8f
+        move.l %d0,%d1              | mapped destination parameter ID
+        subi.l #P_TUNE,%d1
+        cmpi.l #7,%d1
+        bhi.s 8f
+        lsl.l #2,%d1
+        lea ds_short_tab,%a0
+        move.l 0(%a0,%d1.l),%d1
+        beq.s 8f                   | SAMP keeps its stock label
+        lea 0x401a9d9c,%a0
+        move.l %d1,(%sp)            | replace the stock name argument
+        jmp 0x40060baa             | resume drawing at the next instruction
+8:      lea 0x401a9d9c,%a0
+        jmp 0x40060b94             | original descriptor lookup
+
+| The destination popup formats rows separately as MACHINE:Parameter.
+| Its first and fallback draws both need Sophie's full parameter names.
+ds_chooser_name:
+        move.l %d1,-(%sp)
+        move.l %a0,-(%sp)
+        move.l %d0,%d1              | descriptor byte offset
+        subi.l #(P_TUNE*52),%d1
+        cmpi.l #(7*52),%d1
+        bhi.s 1f
+        moveq #DS_ID,%d0
+        cmp.l ds_page_m,%d0
+        bne.s 1f
+        divu #52,%d1
+        andi.l #0xffff,%d1
+        lsl.l #2,%d1
+        lea ds_chooser_tab,%a0
+        move.l 0(%a0,%d1.l),%d0
+        move.l #ds_short,%d6
+        bra.s 2f
+1:      lea 0x401a9dc4,%a0          | descriptor table +40
+        move.l 0(%a0,%d0.l),%d0
+2:      move.l (%sp)+,%a0
+        move.l (%sp)+,%d1
+        rts
+        .globl ds_lfo_popup_name,ds_lfo_popup_fallback
+ds_lfo_popup_name:
+        bsr ds_chooser_name
+        move.l %d0,-(%sp)
+        move.l %d6,-(%sp)
+        jmp 0x400a437a
+ds_lfo_popup_fallback:
+        move.l %d2,%d0
+        bsr ds_chooser_name
+        move.l %d0,-(%sp)
+        move.l %d6,-(%sp)
+        jmp 0x400a43f6
+
+| The LFO overview uses descriptor fields +44 and +48 for its two-line DEST.
+        .globl ds_lfo_overview_group,ds_lfo_overview_name
+ds_lfo_overview_group:
+        move.l %d1,-(%sp)
+        moveq #DS_ID,%d1
+        cmp.l ds_page_m,%d1
+        bne.s 1f
+        cmpi.l #P_TUNE,%d3
+        bcs.s 1f
+        cmpi.l #P_COLOR,%d3
+        bhi.s 1f
+        move.l #ds_short,%d0
+        bra.s 2f
+1:      move.l 44(%a0,%d0.l),%d0
+2:      move.l (%sp)+,%d1
+        move.l %d0,-(%sp)
+        move.l %d2,-(%sp)
+        jmp 0x40065dec
+ds_lfo_overview_name:
+        moveq #52,%d0
+        muls.l %d0,%d3
+        move.l %d1,-(%sp)
+        move.l %a0,-(%sp)
+        move.l %d3,%d1
+        divu #52,%d1
+        andi.l #0xffff,%d1
+        moveq #DS_ID,%d0
+        cmp.l ds_page_m,%d0
+        bne.s 1f
+        subi.l #P_TUNE,%d1
+        cmpi.l #7,%d1
+        bhi.s 1f
+        lsl.l #2,%d1
+        lea ds_overview_tab,%a0
+        move.l 0(%a0,%d1.l),%d0
+        bra.s 2f
+1:      lea 0x401a9dcc,%a0          | descriptor table +48
+        move.l 0(%a0,%d3.l),%d0
+2:      move.l (%sp)+,%a0
+        move.l (%sp)+,%d1
+        move.l %d0,-(%sp)
+        jmp 0x40065e68
+
 ds_is_control:
         moveq #DS_ID,%d1
         cmp.l ds_page_m,%d1
@@ -274,17 +376,22 @@ ds_pop_text:
         cmpi.l #164,%d1
         jmp 0x400657f8
         .balign 4
-ds_short_tab: .long ds_s_tune,ds_s_model,0,0,ds_s_sweep,ds_s_metal,ds_s_feedback,ds_s_color
-ds_long_tab: .long ds_l_tune,ds_l_model,0,0,ds_l_sweep,ds_l_metal,ds_l_feedback,ds_l_color
+ds_short_tab: .long ds_s_tune,ds_s_model,ds_s_fold,0,ds_s_sweep,ds_s_metal,ds_s_feedback,ds_s_color
+ds_long_tab: .long ds_l_tune,ds_l_model,ds_l_fold,0,ds_l_sweep,ds_l_metal,ds_l_feedback,ds_l_color
+ds_chooser_tab: .long ds_l_tune,ds_l_model,ds_l_fold,0x401ccabe,ds_l_sweep,ds_l_metal,ds_l_feedback,ds_l_color
+ds_overview_tab: .long ds_s_tune,ds_s_model,ds_s_fold,ds_s_samp,ds_s_sweep,ds_s_metal,ds_s_feedback,ds_s_color
 ds_range_tab: .long 0x1f00,0x0000,0x7f00,0x4000,0x7f00,0x2800,0x7f00,0x4000,0x7f00,0x2800,0x7f00,0x2000,0x7f00,0x4000
 ds_s_tune: .asciz "TUNE"
 ds_s_model: .asciz "MODEL"
+ds_s_fold: .asciz "FOLD"
+ds_s_samp: .asciz "SAMP"
 ds_s_color: .asciz "COLOR"
 ds_s_metal: .asciz "METAL"
 ds_s_sweep: .asciz "SWEEP"
 ds_s_feedback: .asciz "FBK"
 ds_l_tune: .asciz "Tune"
 ds_l_model: .asciz "Model"
+ds_l_fold: .asciz "Fold"
 ds_l_color: .asciz "Color"
 ds_l_metal: .asciz "Metal"
 ds_l_sweep: .asciz "Sweep"

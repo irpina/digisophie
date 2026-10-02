@@ -101,7 +101,7 @@ static void probe(const char *name, struct ds_params p)
 
 int main(void)
 {
-    struct ds_params p = {180, 0, 64, 90, 0, 32, 127};
+    struct ds_params p = {180, 0, 64, 90, 0, 32, 127, 0};
     uint8_t model;
     p.metal = 0; p.feedback = 0;
     probe("plain sine", p);

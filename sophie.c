@@ -329,3 +329,33 @@ void ds_voice_render(struct ds_voice *v, const struct ds_params *p,
         v->last = v->sleeping ? 0 : y;
     }
 }
+
+/* Fold the 16.16 source after synthesis, before the stock AMP/filter path.
+ * The triangular wrap needs no division or lookup.  Zero is a bit-exact
+ * bypass, including for old sounds whose BR slot was left at zero. */
+void ds_fold_block(int32_t *out, uint32_t n, uint8_t amount)
+{
+    uint32_t i;
+    uint32_t index, fraction;
+    int32_t drive, level;
+    /* Measured against sustained FUSE, BOOM, PIPE and SHARD output.  The
+     * inverse gain eases back up above 64 because repeated folding then
+     * reduces RMS.  Interpolate once per block, not once per sample. */
+    static const uint16_t level_q8[17] = {
+        256, 171, 128, 102, 85, 73, 64, 61, 59,
+        63, 67, 72, 77, 82, 87, 91, 95
+    };
+    if (!amount) return;
+    drive = 256 + (int32_t)amount * 16; /* 1.0625x .. 8.9375x */
+    index = amount >> 3;
+    fraction = amount & 7u;
+    level = ((int32_t)level_q8[index] * (8 - (int32_t)fraction)
+           + (int32_t)level_q8[index + 1] * (int32_t)fraction + 4) >> 3;
+    for (i = 0; i < n; ++i) {
+        int32_t x = out[i] / 65536;
+        int32_t driven = (x * drive) / 256;
+        uint32_t phase = ((uint32_t)(driven + 32768)) & 0x1ffffu;
+        int32_t folded = (int32_t)(phase < 65536u ? phase : 131071u - phase) - 32768;
+        out[i] = ((folded * level) / 256) * 65536;
+    }
+}

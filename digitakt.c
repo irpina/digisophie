@@ -24,6 +24,7 @@ typedef unsigned long u32;
  * lockable and reachable via MIDI CC/NRPN for custom machines. */
 #define P_TUNE 0
 #define P_MODEL 2
+#define P_FOLD 4
 #define P_SWEEP 8
 #define P_METAL 10
 #define P_FEEDBACK 12
@@ -85,6 +86,7 @@ static void ds_read_params(s32 track, struct ds_params *p)
     if (p->phase_inc < 8) p->phase_inc = 8;
     /* Four eight-step zones: deliberate, without excessive travel. */
     p->model = (u8)(ds_u7(track, P_MODEL) >> 3);
+    p->fold = (u8)ds_u7(track, P_FOLD);
     p->color = (u8)ds_u7(track, P_COLOR);
     p->metal = (u8)ds_u7(track, P_METAL);
     p->sweep = (signed char)((s32)ds_u7(track, P_SWEEP) - 64);
@@ -114,5 +116,6 @@ void ds_inject(void)
         ds_read_params(track, &params);
         ds_voice_render(&ds_voices[track], &params, trigger,
                         TBUF(track), DS_BLOCK_SIZE);
+        ds_fold_block(TBUF(track), DS_BLOCK_SIZE, params.fold);
     }
 }
